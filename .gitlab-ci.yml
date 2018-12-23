@@ -11,6 +11,12 @@ stages:
   only:
     - master
 
+.build-codeclimate: &build-codeclimate
+  image: apextoaster/code-climate:0.6
+  tags:
+    - platform:k8s
+    - runner:shared
+
 .build-curl: &build-curl
   image: apextoaster/base:1.2
   tags:
@@ -92,6 +98,29 @@ publish-npm:
     - npm publish
 
 # commit status
+codecov-coverage:
+  <<: [*build-node]
+  stage: status-post
+  when: on_success
+
+  dependencies:
+    - build-node
+  script:
+    - ./node_modules/.bin/codecov --file out/coverage.json --token "$(echo "${CODECOV_SECRET}" | base64 -d)"
+
+codeclimate-pending:
+  <<: [*build-codeclimate]
+  stage: status-pre
+  script:
+    - cc-test-reporter before-build
+
+codeclimate-coverage:
+  <<: [*build-codeclimate]
+  stage: status-post
+  script:
+    - cc-test-reporter format-coverage -t lcov out/coverage.json
+    - cc-test-reporter upload-coverage -r "$(echo "${CODECLIMATE_SECRET}" | base64 -d)"
+ 
 github-pending:
   <<: [*build-curl]
   stage: status-pre

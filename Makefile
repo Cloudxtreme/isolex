@@ -36,11 +36,10 @@ NODE_DEBUG	?= --inspect-brk=$(DEBUG_BIND):$(DEBUG_PORT) --nolazy
 
 # Tool options
 BUNDLE_OPTS	?= --config "$(CONFIG_PATH)/webpack.js" --display-optimization-bailout --display-error-details
-COVER_CHECK ?= --check-coverage --branches 70 --functions 85 --lines 85 --statements 85 	# increase this every so often
-COVER_OPTS	?= --reporter=text-summary --reporter=html --report-dir="$(TARGET_PATH)/coverage"
+COVER_OPTS	?= --reporter=json --report-dir="$(TARGET_PATH)/coverage-raw"
 DOCS_OPTS		?= --exclude "test.+" --tsconfig "$(CONFIG_PATH)/tsconfig.json" --out "$(TARGET_PATH)/docs"
 MOCHA_MULTI ?= --reporter mocha-multi --reporter-options json="$(TARGET_PATH)/mocha.json",spec
-MOCHA_OPTS  ?= --check-leaks --colors --max-old-space-size=4096 --sort --ui bdd
+MOCHA_OPTS  ?= --check-leaks --colors --max-old-space-size=8192 --sort --ui bdd
 
 # Versions
 export NODE_VERSION		:= $(shell node -v)
@@ -109,16 +108,13 @@ run-terminal: ## run the bot in a terminal
 run-bunyan: ## run the bot with bunyan logs
 	ISOLEX_HOME=$(ROOT_PATH)/docs node $(TARGET_PATH)/main-bundle.js | $(NODE_BIN)/bunyan
 
-test: test-check ## run mocha unit tests
-
-test-check: ## run mocha unit tests with coverage reports
-	$(NODE_BIN)/mocha $(MOCHA_OPTS) $(TARGET_PATH)/test-bundle.js
+test: test-cover ## run mocha unit tests
 
 test-cover: ## run mocha unit tests with coverage reports
 	$(NODE_BIN)/nyc $(COVER_OPTS) $(NODE_BIN)/mocha $(MOCHA_OPTS) $(TARGET_PATH)/test-bundle.js
-
-test-leaks: ## run mocha unit tests with coverage reports
-	$(NODE_BIN)/nyc $(COVER_OPTS) $(NODE_BIN)/mocha $(MOCHA_OPTS) $(TARGET_PATH)/test-bundle.js
+	$(NODE_BIN)/remap-istanbul --input $(TARGET_PATH)/coverage-raw/coverage-final.json \
+		--exclude node_modules,out,"test sync" > $(TARGET_PATH)/coverage.json
+	$(NODE_BIN)/remap-istanbul --input $(TARGET_PATH)/coverage.json --output $(TARGET_PATH)/coverage-html --type html
 
 test-watch:
 	$(NODE_BIN)/mocha $(MOCHA_OPTS) --watch $(TARGET_PATH)/test-bundle.js

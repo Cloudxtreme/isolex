@@ -52,7 +52,7 @@ build: ## builds, bundles, and tests the application
 build: configure bundle test
 
 build-strict: ## builds, bundles, and tests the application with type checks and extra warnings (slow)
-build-strict: configure bundle-check test-check
+build-strict: configure bundle-check test-cover
 
 clean: ## clean up the target directory
 	rm -rf $(TARGET_PATH)

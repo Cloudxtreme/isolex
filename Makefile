@@ -39,7 +39,7 @@ BUNDLE_OPTS	?= --config "$(CONFIG_PATH)/webpack.js" --display-optimization-bailo
 COVER_OPTS	?= --reporter=json --report-dir="$(TARGET_PATH)/coverage-raw"
 DOCS_OPTS		?= --exclude "test.+" --tsconfig "$(CONFIG_PATH)/tsconfig.json" --out "$(TARGET_PATH)/docs"
 MOCHA_MULTI ?= --reporter mocha-multi --reporter-options json="$(TARGET_PATH)/mocha.json",spec
-MOCHA_OPTS  ?= --check-leaks --colors --max-old-space-size=8192 --sort --ui bdd
+MOCHA_OPTS  ?= --check-leaks --colors --max-old-space-size=1024 --sort --ui bdd
 
 # Versions
 export NODE_VERSION		:= $(shell node -v)
